@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Local Semantic Image Search</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <main class="page">
+    <header class="header">
+      <div>
+        <h1>Local Semantic Image Search</h1>
+        <p class="subtitle">Search your local images with natural-language CLIP embeddings.</p>
+      </div>
+    </header>
+
+    <section class="panel status-panel">
+      <div class="status-grid">
+        <div>
+          <span class="label">Image folder</span>
+          {% if image_root %}
+            <code>{{ image_root }}</code>
+          {% else %}
+            <span class="muted">Not configured</span>
+          {% endif %}
+        </div>
+        <div>
+          <span class="label">Index directory</span>
+          <code>{{ index_dir }}</code>
+        </div>
+        <div>
+          <span class="label">Index status</span>
+          {% if index_ready %}
+            <span class="badge badge-ok">Ready</span>
+          {% else %}
+            <span class="badge badge-warn">Missing</span>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <section class="messages">
+          {% for category, message in messages %}
+            <div class="message message-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </section>
+      {% endif %}
+    {% endwith %}
+
+    <section class="panel controls">
+      <form class="search-form" action="{{ url_for('search') }}" method="post">
+        <div class="field field-grow">
+          <label for="query">Search query</label>
+          <input
+            id="query"
+            name="query"
+            type="text"
+            value="{{ query }}"
+            placeholder="sunset over mountains, terminal screenshot, anime wallpaper..."
+            autofocus
+          >
+        </div>
+
+        <div class="field top-k-field">
+          <label for="top_k">Top K</label>
+          <input
+            id="top_k"
+            name="top_k"
+            type="number"
+            min="1"
+            max="{{ max_top_k }}"
+            value="{{ default_top_k }}"
+          >
+        </div>
+
+        <div class="field threshold-field">
+          <label for="min_score">Min score</label>
+          <input
+            id="min_score"
+            name="min_score"
+            type="number"
+            min="-1"
+            max="1"
+            step="0.01"
+            value="{{ '%.2f'|format(min_score) }}"
+            title="Hide matches below this cosine similarity score. Try 0.20-0.30."
+          >
+        </div>
+
+        <button class="button button-primary" type="submit">Search</button>
+      </form>
+
+      <form class="reindex-form" action="{{ url_for('reindex') }}" method="post">
+        <button class="button button-secondary" type="submit">Re-index folder</button>
+      </form>
+    </section>
+
+    {% if query %}
+      <section class="results-header">
+        <h2>Results for “{{ query }}”</h2>
+        <p class="muted">
+          {{ results|length }} match{{ '' if results|length == 1 else 'es' }} shown · min score {{ '%.2f'|format(min_score) }}
+        </p>
+      </section>
+    {% endif %}
+
+    {% if results %}
+      <section class="results-grid" aria-label="Search results">
+        {% for result in results %}
+          <article class="result-card">
+            <a class="thumbnail-link" href="{{ result.image_url }}" target="_blank" rel="noopener noreferrer">
+              <img class="thumbnail" src="{{ result.image_url }}" alt="{{ result.filename }}" loading="lazy">
+            </a>
+            <div class="result-info">
+              <h3 title="{{ result.filename }}">{{ result.filename }}</h3>
+              <p class="score">Similarity: {{ "%.3f"|format(result.score) }}</p>
+              <p class="path" title="{{ result.path }}">{{ result.path }}</p>
+            </div>
+          </article>
+        {% endfor %}
+      </section>
+    {% else %}
+      <section class="empty-state panel">
+        {% if query %}
+          <h2>No results to display</h2>
+          <p>Try another query, lower the minimum score, increase Top K, or re-index your image folder.</p>
+        {% elif not index_ready %}
+          <h2>No index found yet</h2>
+          <p>Configure an image folder and click <strong>Re-index folder</strong> to build the first index.</p>
+        {% else %}
+          <h2>Ready to search</h2>
+          <p>Type a natural-language description above to find matching images.</p>
+        {% endif %}
+      </section>
+    {% endif %}
+  </main>
+</body>
+</html>

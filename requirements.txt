@@ -1,0 +1,17 @@
+# Web framework
+Flask==3.0.3
+
+# CLIP model loading and inference
+# Note: torch wheels are platform-specific. This CPU-compatible spec works for many Linux setups,
+# but see https://pytorch.org/get-started/locally/ if you need CUDA or a different install command.
+torch==2.3.1
+transformers==4.44.2
+
+# Image loading/preprocessing
+Pillow==10.4.0
+
+# Embedding storage and vector similarity math
+numpy==1.26.4
+
+# Used internally by transformers for model/tokenizer files
+safetensors==0.4.5
