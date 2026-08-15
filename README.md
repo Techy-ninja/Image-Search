@@ -249,6 +249,12 @@ abstract blue geometric background
 photo of a cat
 ```
 
+#### Example retrievals for different text queries, illustrating semantic matching between descriptions and images.
+![Example retrievals for different text queries.](sunset.png)
+![Example retrievals for different text queries.](moon.png)
+
+
+
 CLIP works better with descriptive phrases than single words.
 
 Instead of:
